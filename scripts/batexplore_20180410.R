@@ -6,7 +6,6 @@
 
 rm(list = ls()) # this line of code removes EVERYTHING from the working environment
 
-
 # LOAD LIBRARIES ----------------------------------------------------------
 
 library(tidyverse)
@@ -16,7 +15,7 @@ library(chron)
 # READ IN, CLEAN UP SONOVET OUTPUT FILES ----------------------------------
 
 allsites <- list.files ("data", full.names = TRUE, pattern = ".txt")
-t <- do.call("rbind", lapply(allsites, read_tsv)) #t for 'total' sites
+t <- do.call("rbind", lapply(X = allsites, FUN = read_tsv, col_names = FALSE, skip = 1)) #t for 'total' sites
 # TO DO: check the above to make sure all the files bound correctly-- the code above returns warnings
 # always take a glimpse to make sure your data are read in correctly
 glimpse(t)
@@ -34,30 +33,23 @@ glimpse(t) # check column names
 t[,13:23] <- lapply(t[,13:23], as.numeric) # 'lapply' is taking columns 13-23 of the t dataframe and applying the function 'as.numeric' to them
 summary(t) #confirm that it worked-- summary can now return summary stats on the numeric columns
 
+
+# DATE/TIME FORMATTING ----------------------------------------------------
 # create columns for date and time using the 'separate' function to split the latent info in the Filename column
 # the second 'separate' command is a janky way to do this but i don't feel like learning regular expressions rn
 t <- t %>% 
   separate(Filename, c("Site", "Date", "Time"), sep = "_", remove = TRUE) %>%
   separate(Time, c("Time", "fileext"), sep=".w")
 t$fileext <- NULL # this deletes this column
-# change class of Time column
-t$Time <- as.numeric(t$Time)
-t$Time <- chron(times=t$Time, out.format = "h:m:s") # for some reason, changing the Time column to numeric allowed chron to work
-t$Time <- as.POSIXct(t$Time, format = "hhmmss")
-#change class of date column 
-t$Date <- ymd(t$Date)
 
-# UPDATE: we may not need this timestamp column anymore now that the above worked
-# 'unite' creates a new column called "Timestamp" that includes both the Date and Time columns we created above
-# We did this because it's easier to coerce a full date-timestamp into POSIXct format than it is with a time-only stamp
-# I'm sure there's a way to change the class of time objects but I couldn't figure it out quickly -MKC
+# create a Timestamp column because it's easy to coerce to the date/time class
 t <- t %>% 
   unite(Timestamp, Date, Time, sep = " ", remove = FALSE)
 class(t$Timestamp) 
 
 # format Timestamp to correct class
 t$Timestamp <- ymd_hms(t$Timestamp)
-class(t$Timestamp) #check class now
+class(t$Timestamp) #check class now, should be POSIXct
 
 # FINALLY create separate columns for date and time and coerce to date/time class
 t <- t %>%
@@ -65,6 +57,11 @@ t <- t %>%
 lapply(t, class) # returns class for all columns
 t$Date <- ymd(t$Date)
 t$Time <- chron(times=t$Time)
+class(t$Time)
+
+# add column for HOUR (to later investigate call activity by hour of night)
+t <- t %>%
+  mutate(hr = substr(Time, 1,2))
 
 # FILTER DATA -------------------------------------------------------------
 # filter out all non-bat entries and create a new dataframe called 'detect' with only entries that definitely contain bat passes
@@ -135,10 +132,18 @@ nrow(CheckMe)
 ## attempting to assign ID to data by using best-choice ID column, then next best, then next best...
 # how to look in a column in a certain object when that column is used in multiple objects
 detect["AccpSpp"]
+unique(detect$AccpSpp)
 
 if (detect["AccpSpp"] =='"x"') ID <- detect["TildeSpp"] else
   ID <- detect["AccpSpp"]
 
+# number of species per site
+sprich_site <- detect %>%
+  select(Site, Date, Time, AccpSpp) %>%
+  group_by(Site) %>%
+  summarise(sprich = n_distinct(AccpSpp)) %>%
+  ggplot() +
+  geom_col(aes(x=Site, y=sprich))
 
 # PLOTS -------------------------------------------------------------------
 
@@ -150,28 +155,40 @@ if (detect["AccpSpp"] =='"x"') ID <- detect["TildeSpp"] else
 freq_group <- detect %>%
   select(Date, Time, Site, HiF, LoF) %>%
   group_by(Date, Site) %>%
-  summarise(nHiF = sum(HiF == "1"), nLoF = sum(LoF == "1")) %>%
+  summarise(nHiF = sum(HiF == "1"), nLoF = sum(LoF == "1"))
   
-  ggplot(data = freq_group) +
-  geom_point(alpha = 0.5, color = "red", aes(x=Date, y=nHiF)) +
-  geom_point(alpha = 0.5, color = "blue", aes(x=Date, y=nLoF)) +
+  ggplot(freq_group) +
+  geom_point(alpha = 0.5, aes(x=Date, y=nHiF, color = "red")) +
+  geom_point(alpha = 0.5, aes(x=Date, y=nLoF, color = "blue")) +
   facet_wrap(~Site, nrow = 3) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(x = "date", 
        y = "number of bat passes per night",
-       title = "Bat Call Activity at Fishless versus Fish-containing Lakes") 
+       title = "Bat Call Activity at Fishless versus Fish-containing Lakes") +
+    scale_colour_manual(name = NULL,
+                        values =c('red'='red','blue'='blue'), 
+                        labels = c('low-frequency', 'high-frequency')) 
 
-freq_group %>%
-  group_by(Time, Site) %>%
-  summarise(nHiF = sum(HiF == "1"), nLoF = sum(LoF == "1")) %>%
+by_time <- detect %>%
+  group_by(hr, Site) %>%
+  filter(hr != 10) %>%
+  summarise(nHiF = sum(HiF == "1"), nLoF = sum(LoF == "1"))
+
+by_time_2 <- detect %>%
+  group_by(hr) %>%
+  filter(hr != 10) %>%
+  summarise(nHiF = sum(HiF == "1"), nLoF = sum(LoF == "1"))
   
-  ggplot() +
-  geom_point(alpha = 0.5, color = "red", aes(x=Date, y=nHiF)) +
-  geom_point(alpha = 0.5, color = "blue", aes(x=Date, y=nLoF)) +
-  facet_wrap(~Site, nrow = 3) +
+  ggplot(by_time) +
+  geom_point(alpha = 0.5, aes(x=hr, y=nHiF, color = "red")) +
+  geom_point(alpha = 0.5, aes(x=hr, y=nLoF, color = "blue")) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "date", 
-       y = "number of bat passes per night",
-       title = "Bat Call Activity at Fishless versus Fish-containing Lakes") 
+  labs(x = "hour of night (24-hour time)", 
+       y = "number of bat passes",
+       title = "Bat Passes by Hour") +
+    scale_colour_manual(name = 'acoustic clade',
+                        values =c('red'='red','blue'='blue'), 
+                        labels = c('low-frequency', 'high-frequency')) +
+    theme(legend.position = c(0.8, 0.8))
