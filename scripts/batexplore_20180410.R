@@ -23,12 +23,30 @@ glimpse(t)
 # a1 <- read_tsv("data/AMPHIT1_July_shorts_output.txt", col_names=TRUE) #AMPHIT1 ONLY
 # summary(a1)
 
+
+# TO-DO LIST --------------------------------------------------------------
+## UPDATE COLUMN NAMES NOW 04242018
+## write an interactive code for column name descriptions
+## GOOGLE 'SECTION' CTRL+SHIFT+R 
+## ADD MULT GUESSES TO CHECKME //
+## BE CONSERVATIVE WITH ID //
+## PROBABLY GET RID OF ID IF/THEN SITUATION //
+## REVIEW CODE/REVIEW PLOTTING PROCESS
+## PLAY W/ SPRICH_SITE
+## INSECT LITERATURE
+## 
+
+
+# COLUMN NAMES ------------------------------------------------------------
 # rename columns to get rid of symbols...fix this later when we know true column significances
 names(t) <- c("Filename", "HiF", "LoF", "ManualID", "AccpSpp", "Maj", "Accp", "TildeSpp", "Primary", "Secondary", "Tert", "Quat",
-                        "Fc_mean", "Fc_stdev", "Dur_mean", "Dur_stdev", "calls_sec", "HiF_mean", "LoF_mean", "UpprSlp_mean", "LwrSlp_mean", 
-                        "TotSlp_mean", "PrecedingInt_mean", "ParentDir", "NextDirUp", "filelength", "V", "AccpQuality", "NumCalls")
+              "Fc_mean", "Fc_stdev", "Dur_mean", "Dur_stdev", "calls_sec", "HiF_mean", "LoF_mean", "UpprSlp_mean", "LwrSlp_mean", 
+              "TotSlp_mean", "PrecedingInt_mean", "ParentDir", "NextDirUp", "filelength", "V", "AccpQuality", "NumCalls")
 glimpse(t) # check column names
 
+
+
+# NUMBERS = NUMERIC -------------------------------------------------------
 # change columns with numbers to class 'numeric'
 t[,13:23] <- lapply(t[,13:23], as.numeric) # 'lapply' is taking columns 13-23 of the t dataframe and applying the function 'as.numeric' to them
 summary(t) #confirm that it worked-- summary can now return summary stats on the numeric columns
@@ -124,18 +142,40 @@ nrow(detect)
 
 ## attempting to filter data that we need to manually ID. Multiple different scenarios need to be checked for manual ID.
 # Check if both HiF = 1 and LoF = 1
-CheckMe <- detect %>%
+CheckMe1 <- detect %>%
   filter(HiF == "1" & LoF == "1") 
-# check how many files we are going to need to manual ID
-nrow(CheckMe)
+# check if it worked
+nrow(CheckMe1)
 
-## attempting to assign ID to data by using best-choice ID column, then next best, then next best...
-# how to look in a column in a certain object when that column is used in multiple objects
-detect["AccpSpp"]
-unique(detect$AccpSpp)
+# check if there are multiple guesses
+CheckMe2 <- detect %>%
+  filter(Primary != AccpSpp)
+# check 
+nrow(CheckMe2)
 
-if (detect["AccpSpp"] =='"x"') ID <- detect["TildeSpp"] else
-  ID <- detect["AccpSpp"]
+# also run, "if 'primary' = 'SppAccp' AND 'Spp' does not = 'Maj'" to check if there are multiple guesses
+CheckMe3 <- detect %>%
+  filter(Primary == AccpSpp & Accp != Maj)
+
+# check 
+nrow(CheckMe3)
+
+# combine all the files we need to manual ID:
+CheckMe <- bind_rows(CheckMe1, CheckMe2, CheckMe3)
+
+# check that the # of variables in all 3 'CheckMe#'s got into the final CheckMe
+nrow(CheckMe1) + nrow(CheckMe2) + nrow(CheckMe3)
+
+# reorder that object that combined all the files so that they're in a good order so that it's easy to check them
+#put code here
+
+# ## attempting to assign ID to data by using best-choice ID column, then next best, then next best...
+# # how to look in a column in a certain object when that column is used in multiple objects
+# detect["AccpSpp"]
+# unique(detect$AccpSpp)
+# 
+# if (detect["AccpSpp"] =='"x"') ID <- detect["TildeSpp"] else
+#   ID <- detect["AccpSpp"]
 
 # number of species per site
 sprich_site <- detect %>%
