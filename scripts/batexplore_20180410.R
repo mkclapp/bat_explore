@@ -25,7 +25,7 @@ glimpse(t)
 
 
 # TO-DO LIST --------------------------------------------------------------
-## UPDATE COLUMN NAMES NOW 04242018
+## UPDATE COLUMN NAMES NOW 04242018 //
 ## write an interactive code for column name descriptions
 ## GOOGLE 'SECTION' CTRL+SHIFT+R 
 ## ADD MULT GUESSES TO CHECKME //
@@ -34,19 +34,22 @@ glimpse(t)
 ## REVIEW CODE/REVIEW PLOTTING PROCESS
 ## PLAY W/ SPRICH_SITE
 ## INSECT LITERATURE
-## 
+## FEEDBACK FROM LEILA REGARDING HI=1&LO=1 EXAMPLES
 
 
 # COLUMN NAMES ------------------------------------------------------------
+
 # rename columns to get rid of symbols...fix this later when we know true column significances
 names(t) <- c("Filename", "HiF", "LoF", "ManualID", "AccpSpp", "Maj", "Accp", "TildeSpp", "Primary", "Secondary", "Tert", "Quat",
               "Fc_mean", "Fc_stdev", "Dur_mean", "Dur_stdev", "calls_sec", "HiF_mean", "LoF_mean", "UpprSlp_mean", "LwrSlp_mean", 
               "TotSlp_mean", "PrecedingInt_mean", "ParentDir", "NextDirUp", "filelength", "V", "AccpQuality", "NumCalls")
 glimpse(t) # check column names
-
-
+# These col descriptors never found in docs: TildeSpp, HiF_mean, LoF_mean, UpprSlp_mean, LwrSlp_mean
+# TildeSpp may be like the former col name 'Clssnif<Thr'?
+# AccpQuality is likely the former col name 'AccpQualForTally' and could be USEFUL to understand freq and decision choices made by SonoBat
 
 # NUMBERS = NUMERIC -------------------------------------------------------
+
 # change columns with numbers to class 'numeric'
 t[,13:23] <- lapply(t[,13:23], as.numeric) # 'lapply' is taking columns 13-23 of the t dataframe and applying the function 'as.numeric' to them
 summary(t) #confirm that it worked-- summary can now return summary stats on the numeric columns
@@ -138,14 +141,19 @@ nrow(detect)
 #summary(amphit_detect$)
 
 
-# FILTERING DATA FOR MANUAL ID --------------------------------------------
+
+# MANUAL ID --------------------------------------------
 
 ## attempting to filter data that we need to manually ID. Multiple different scenarios need to be checked for manual ID.
 # Check if both HiF = 1 and LoF = 1
 CheckMe1 <- detect %>%
   filter(HiF == "1" & LoF == "1") 
+# create a table to send to Leila
+write.csv(CheckMe1, file = "docs/CheckMeHiLo", na = "NA", append = FALSE, col.names = append)
+
 # check if it worked
 nrow(CheckMe1)
+
 
 # check if there are multiple guesses
 CheckMe2 <- detect %>%
