@@ -26,8 +26,8 @@ glimpse(t)
 
 # TO-DO LIST --------------------------------------------------------------
 ## UPDATE COLUMN NAMES NOW 04242018 //
-## write an interactive code for column name descriptions
-## GOOGLE 'SECTION' CTRL+SHIFT+R 
+## write an interactive code for column name descriptions //
+## GOOGLE 'SECTION' CTRL+SHIFT+R //
 ## ADD MULT GUESSES TO CHECKME //
 ## BE CONSERVATIVE WITH ID //
 ## PROBABLY GET RID OF ID IF/THEN SITUATION //
@@ -35,6 +35,7 @@ glimpse(t)
 ## PLAY W/ SPRICH_SITE
 ## INSECT LITERATURE
 ## FEEDBACK FROM LEILA REGARDING HI=1&LO=1 EXAMPLES
+## FIX GROUP_BY(CHECKME)?
 
 
 # COLUMN NAMES ------------------------------------------------------------
@@ -47,6 +48,43 @@ glimpse(t) # check column names
 # These col descriptors never found in docs: TildeSpp, HiF_mean, LoF_mean, UpprSlp_mean, LwrSlp_mean
 # TildeSpp may be like the former col name 'Clssnif<Thr'?
 # AccpQuality is likely the former col name 'AccpQualForTally' and could be USEFUL to understand freq and decision choices made by SonoBat
+
+# Create Interactive Code for user-friendlyness
+#trying the comment function, etc.
+library(lattice)
+describeattempt <- left_join(names(t), descriptions)
+comment(t) <- columns
+
+descriptions <- c("name of file imported",
+                  "1 if call is primarily high frequency",
+                  "1 if call is primarily low frequency",
+                  "not listed -- optional for if we added a manual ID",
+                  "accepted species ID",
+                  "the # of calls in the majority of vote decision//accepted species ID",
+                  "? -- # of calls in the vote decision that reached a species decision and entered in the vote decision",
+                  "not listed -- a likely but uncertain species ID",
+                  "the best guess//species ID with the greatest # of calls",
+                  "2nd best species ID guess",
+                  "3rd best species ID guess",
+                  "4th best species ID guess",
+                  "mean frequency of the most characteristic frequency",
+                  "standard deviation of the most characteristic frequency",
+                  "mean call duration (msec) of the calls included in the sequence decision",
+                  "standard deviation of the duration of the calls included in the sequence decision",
+                  "mean calls per second (long description in Word doc",
+                  "mean high frequency",
+                  "mean low frequency",
+                  "not listed",
+                  "not listed",
+                  "not listed",
+                  "not listed?",
+                  "parent directory",
+                  "next directory up from parent directory",
+                  "file length",
+                  "SonoBat version",
+                  "bat pass acceptable quality setting -- a compromise b/n getting all the bats vs getting excess noise",
+                  "max # of calls considered per file")
+columns <- data.frame(names(t), descriptions)
 
 # NUMBERS = NUMERIC -------------------------------------------------------
 
@@ -148,34 +186,40 @@ nrow(detect)
 # Check if both HiF = 1 and LoF = 1
 CheckMe1 <- detect %>%
   filter(HiF == "1" & LoF == "1") 
-# create a table to send to Leila
-write.csv(CheckMe1, file = "docs/CheckMeHiLo", na = "NA", append = FALSE, col.names = append)
-
 # check if it worked
 nrow(CheckMe1)
-
+# sort by site and date
+CheckMe1 %>%
+  group_by(Site, Date)
+# create a table to send to Leila
+write.csv(CheckMe1, file = "docs/CheckMeHiLo", na = "NA", append = FALSE, col.names = append)
 
 # check if there are multiple guesses
 CheckMe2 <- detect %>%
   filter(Primary != AccpSpp)
 # check 
 nrow(CheckMe2)
+# sort by site and date
+CheckMe2 %>%
+  group_by(Site, Date)
 
-# also run, "if 'primary' = 'SppAccp' AND 'Spp' does not = 'Maj'" to check if there are multiple guesses
+# check if there are multiple guesses even though the Primary was "accepted"
 CheckMe3 <- detect %>%
   filter(Primary == AccpSpp & Accp != Maj)
-
 # check 
 nrow(CheckMe3)
+# sort by site and date
+CheckMe3 %>%
+  group_by(Site, Date)
 
 # combine all the files we need to manual ID:
 CheckMe <- bind_rows(CheckMe1, CheckMe2, CheckMe3)
-
 # check that the # of variables in all 3 'CheckMe#'s got into the final CheckMe
 nrow(CheckMe1) + nrow(CheckMe2) + nrow(CheckMe3)
-
-# reorder that object that combined all the files so that they're in a good order so that it's easy to check them
-#put code here
+# sort by site and date
+CheckMe %>%
+    group_by(Site, Date) #THIS IS NOT WORKING -- IT'S JUST STACKING ALL THE CHECKME'S
+#^use 'melt' in reshape2 package?
 
 # ## attempting to assign ID to data by using best-choice ID column, then next best, then next best...
 # # how to look in a column in a certain object when that column is used in multiple objects
