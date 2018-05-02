@@ -85,7 +85,7 @@ descriptions <- c("name of file imported",
                   "bat pass acceptable quality setting -- a compromise b/n getting all the bats vs getting excess noise",
                   "max # of calls considered per file")
 columns <- data.frame(names(t), descriptions)
-
+print('For help with understanding column names, enter this in console: columns')
 # NUMBERS = NUMERIC -------------------------------------------------------
 
 # change columns with numbers to class 'numeric'
@@ -194,7 +194,7 @@ CheckMe1 %>%
 # create a table to send to Leila
 write.csv(CheckMe1, file = "docs/CheckMeHiLo", na = "NA", append = FALSE, col.names = append)
 
-# check if there are multiple guesses
+# check if there are multiple guesses but none accepted
 CheckMe2 <- detect %>%
   filter(Primary != AccpSpp)
 # check 
@@ -221,6 +221,8 @@ CheckMe %>%
     group_by(Site, Date) #THIS IS NOT WORKING -- IT'S JUST STACKING ALL THE CHECKME'S
 #^use 'melt' in reshape2 package?
 
+
+# OLD CODE (ASSIGN ID) ----------------------------------------------------
 # ## attempting to assign ID to data by using best-choice ID column, then next best, then next best...
 # # how to look in a column in a certain object when that column is used in multiple objects
 # detect["AccpSpp"]
@@ -229,6 +231,8 @@ CheckMe %>%
 # if (detect["AccpSpp"] =='"x"') ID <- detect["TildeSpp"] else
 #   ID <- detect["AccpSpp"]
 
+
+# SPECIES RICHNESS --------------------------------------------------------
 # number of species per site
 sprich_site <- detect %>%
   select(Site, Date, Time, AccpSpp) %>%
@@ -236,6 +240,35 @@ sprich_site <- detect %>%
   summarise(sprich = n_distinct(AccpSpp)) %>%
   ggplot() +
   geom_col(aes(x=Site, y=sprich))
+
+# SPECIES RICHNESS MADI'S EDITS 05012018 ----------------------------------
+# number of species per site -- Madi's edits
+sprich_site <- detect %>%
+  select(Site, Date, Time, AccpSpp) %>%
+  group_by(Site) %>%
+  summarise(sprich = n_distinct(AccpSpp))
+
+
+  ggplot(sprich_site) +
+  geom_col(aes(x=Site, y=sprich))
+# STACKED BAR CHART
+# Find which species are detected.
+spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
+totaldiv <- n_distinct(spp_here) - 1 #total diversity = distinct speices detected minus "1" for 'x'
+# Create input vectors.
+colors = c("red1", "orangered1", "tan2", "yellow", "lawngreen", "limegreen", "springgreen4", "turquoise4", "skyblue4", "royalblue4", "slateblue4", "slateblue2", "mediumpurple3")
+Sites <- c(sprich_site$Site)
+spp_here #the part that will be different colors in each bar; already exists
+# Create the matrix of the values.
+Values <- matrix(c(sprich_site$sprich), nrow = n_distinct(colors), ncol = n_distinct(Sites), byrow = TRUE)
+# Give the chart a file name.
+png(file = "sprich_stackedbar.png")
+# Create the bar chart.
+barplot(Values, main = "Species Richness", names.arg = Sites, xlab = "Site", ylab = "Number of Species", col = colors)
+# Add the legend to the chart.
+legend("topleft", spp_here, cex = 1.3, fill = colors)
+
+
 
 # PLOTS -------------------------------------------------------------------
 
@@ -284,3 +317,4 @@ by_time_2 <- detect %>%
                         values =c('red'='red','blue'='blue'), 
                         labels = c('low-frequency', 'high-frequency')) +
     theme(legend.position = c(0.8, 0.8))
+
