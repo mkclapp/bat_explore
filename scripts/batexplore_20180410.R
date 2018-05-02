@@ -251,25 +251,97 @@ sprich_site <- detect %>%
 
   ggplot(sprich_site) +
   geom_col(aes(x=Site, y=sprich))
-# STACKED BAR CHART
+# # STACKED BAR CHART -- 'barplot' command -- not working
+# # Find which species are detected.
+# spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
+# totaldiv <- n_distinct(spp_here) - 1 #total diversity = distinct speices detected minus "1" for 'x'
+# # Create input vectors.
+# colors = c("red1", "orangered1", "tan2", "yellow", "lawngreen", "limegreen", "springgreen4", "turquoise4", "skyblue4", "royalblue4", "slateblue4", "slateblue2", "mediumpurple3")
+# Sites <- c(sprich_site$Site)
+# spp_here #the part that will be different colors in each bar; already exists
+# # Create the matrix of the values.
+# Values <- matrix(c(sprich_site$sprich), nrow = n_distinct(colors), ncol = n_distinct(Sites), byrow = TRUE)
+# # Give the chart a file name.
+# png(file = "sprich_stackedbar.png")
+# # Create the bar chart.
+# barplot(Values, main = "Species Richness", names.arg = Sites, xlab = "Site", ylab = "Number of Species", col = colors)
+# # Add the legend to the chart.
+# legend("topleft", spp_here, cex = 1.3, fill = colors)
+
+# STACKED BAR CHART -- ggplot attempt
 # Find which species are detected.
 spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
 totaldiv <- n_distinct(spp_here) - 1 #total diversity = distinct speices detected minus "1" for 'x'
 # Create input vectors.
 colors = c("red1", "orangered1", "tan2", "yellow", "lawngreen", "limegreen", "springgreen4", "turquoise4", "skyblue4", "royalblue4", "slateblue4", "slateblue2", "mediumpurple3")
-Sites <- c(sprich_site$Site)
-spp_here #the part that will be different colors in each bar; already exists
-# Create the matrix of the values.
-Values <- matrix(c(sprich_site$sprich), nrow = n_distinct(colors), ncol = n_distinct(Sites), byrow = TRUE)
-# Give the chart a file name.
-png(file = "sprich_stackedbar.png")
-# Create the bar chart.
-barplot(Values, main = "Species Richness", names.arg = Sites, xlab = "Site", ylab = "Number of Species", col = colors)
-# Add the legend to the chart.
-legend("topleft", spp_here, cex = 1.3, fill = colors)
+# Create species richness info.
+sprich_site <- detect %>%
+  select(Site, Date, Time, AccpSpp) %>%
+  group_by(Site) %>%
+  summarise(sprich = n_distinct(AccpSpp))
+# Create plot of species richness.  
+g <- ggplot(sprich_site)
+g + geom_col(aes(x=Site, y=sprich))
+#
+## Improve by specifying which species.
+# Which species are at each site?:
+# Subset detect into individual sites and # of each species per site.
+# AMPHIT1 entries with accepted species
+justA1 <- subset(detect, Site == "AMPHIT1" & AccpSpp != "x")
+# AMPHIT1 entries organized by species (same order as 'spp_here' list)
+A1 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {A1[i] <- sum(justA1$AccpSpp == spp_here[i]) 
+      print(A1[i]) #add 'spp_here' column in future
+}
+# AMPHIT2 entries with accepted species
+justA2 <- subset(detect, Site == "AMPHIT2" & AccpSpp != "x")
+# AMPHIT2 entries organized by species (same order as 'spp_here' list)
+A2 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {A2[i] <- sum(justA2$AccpSpp == spp_here[i]) 
+    print(A2[i])
+}
+# CENTER1 entries with accepted species
+justC1 <- subset(detect, Site == "CENTER1" & AccpSpp != "x")
+# CENTER1 entries organized by species (same order as 'spp_here' list)
+C1 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {C1[i] <- sum(justC1$AccpSpp == spp_here[i]) 
+    print(C1[i])
+}
+# CENTER2 entries with accepted species
+justC2 <- subset(detect, Site == "CENTER2" & AccpSpp != "x")
+# CENTER2 entries organized by species (same order as 'spp_here' list)
+C2 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {C2[i] <- sum(justC2$AccpSpp == spp_here[i]) 
+    print(C2[i])
+}
+# EASTLA1 entries with accepted species
+justE1 <- subset(detect, Site == "EASTLA1" & AccpSpp != "x")
+# EASTLA1 entries organized by species (same order as 'spp_here' list)
+E1 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {E1[i] <- sum(justE1$AccpSpp == spp_here[i]) 
+    print(E1[i])
+}
+# EASTLA2 entries with accepted species
+justE2 <- subset(detect, Site == "EASTLA2" & AccpSpp != "x")
+# EASTLA2 entries organized by species (same order as 'spp_here' list)
+E2 <- numeric(length = length(spp_here))
+for (i in 2:14)
+  {E2[i] <- sum(justE2$AccpSpp == spp_here[i]) 
+    print(E2[i])
+}
 
+# ## Make a table thats "Site" "spp_here[2]" "spp_here[3]...spp_here[14] ) <- COME BACK TO FIX THIS
+# divall <- c(A1, A2, C1, C2, E1, E2)
+# diversity <- data.frame(Sites, divall)
 
-
+d <- ggplot(sprich_site) #diversity plot
+g + geom_col(aes(x=Site, y=sprich))
+g + geom_col(aes(fill=sprich_site$sprich))
 # PLOTS -------------------------------------------------------------------
 
 # HiF and LoF over time, by Site
