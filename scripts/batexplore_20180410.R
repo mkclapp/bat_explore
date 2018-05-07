@@ -31,12 +31,13 @@ glimpse(t)
 ## ADD MULT GUESSES TO CHECKME //
 ## BE CONSERVATIVE WITH ID //
 ## PROBABLY GET RID OF ID IF/THEN SITUATION //
-## REVIEW CODE/REVIEW PLOTTING PROCESS
-## PLAY W/ SPRICH_SITE
-## INSECT LITERATURE
-## FEEDBACK FROM LEILA REGARDING HI=1&LO=1 EXAMPLES
-## FIX GROUP_BY(CHECKME)?
-
+## REVIEW CODE/REVIEW PLOTTING PROCESS 
+## PLAY W/ SPRICH_SITE // 
+## INSECT LITERATURE - research; emergence time; climate stuff?; ask fly fisherman
+## FEEDBACK FROM LEILA REGARDING HI=1&LO=1 EXAMPLES //?
+## FIX GROUP_BY(CHECKME)? // <- decided unimportant
+## Leila: are our AccpSpp actually good enough to use?
+## Leila: SonoBat license?
 
 # COLUMN NAMES ------------------------------------------------------------
 
@@ -241,16 +242,21 @@ sprich_site <- detect %>%
   ggplot() +
   geom_col(aes(x=Site, y=sprich))
 
-# SPECIES RICHNESS MADI'S EDITS 05012018 ----------------------------------
-# number of species per site -- Madi's edits
-sprich_site <- detect %>%
-  select(Site, Date, Time, AccpSpp) %>%
-  group_by(Site) %>%
-  summarise(sprich = n_distinct(AccpSpp))
-
-
-  ggplot(sprich_site) +
-  geom_col(aes(x=Site, y=sprich))
+# STACKED BARPLOT SPECIES -------------------------------------------------
+# STACKED BAR - R GROUP HELP
+ggplot(detect, aes(x = Site, fill = AccpSpp)) + geom_bar()
+detect_filt <- filter(detect, AccpSpp != "x") 
+ggplot(detect_filt, aes(x = Site, fill = AccpSpp)) + geom_bar()
+# # SPECIES RICHNESS MADI'S EDITS 05012018 ----------------------------------
+# # number of species per site -- Madi's edits
+# sprich_site <- detect %>%
+#   select(Site, Date, Time, AccpSpp) %>%
+#   group_by(Site) %>%
+#   summarise(sprich = n_distinct(AccpSpp))
+# 
+# 
+#   ggplot(sprich_site) +
+#   geom_col(aes(x=Site, y=sprich))
 # # STACKED BAR CHART -- 'barplot' command -- not working
 # # Find which species are detected.
 # spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
@@ -268,113 +274,114 @@ sprich_site <- detect %>%
 # # Add the legend to the chart.
 # legend("topleft", spp_here, cex = 1.3, fill = colors)
 
-# STACKED BAR CHART -- ggplot attempt
-# Find which species are detected.
-spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
-totaldiv <- n_distinct(spp_here) - 1 #total diversity = distinct speices detected minus "1" for 'x'
-# Create input vectors.
-colors = c("red1", "orangered1", "tan2", "yellow", "lawngreen", "limegreen", "springgreen4", "turquoise4", "skyblue4", "royalblue4", "slateblue4", "slateblue2", "mediumpurple3")
-# Create species richness info. this is a duplicate of above I think.
+
+# # STACKED BAR CHART -- ggplot attempt
+# # Find which species are detected.
+# spp_here <- unique(unlist(detect$AccpSpp, use.names = FALSE))
+# totaldiv <- n_distinct(spp_here) - 1 #total diversity = distinct speices detected minus "1" for 'x'
+# # Create input vectors.
+# colors = c("red1", "orangered1", "tan2", "yellow", "lawngreen", "limegreen", "springgreen4", "turquoise4", "skyblue4", "royalblue4", "slateblue4", "slateblue2", "mediumpurple3")
+# # Create species richness info. this is a duplicate of above I think.
+# # sprich_site <- detect %>%
+# #   select(Site, Date, Time, AccpSpp) %>%
+# #   group_by(Site) %>%
+# #   summarise(sprich = n_distinct(AccpSpp))
+# # # Create plot of species richness.  
+# # g <- ggplot(sprich_site)
+# # g + geom_col(aes(x=Site, y=sprich))
+# #
+# ## Improve by specifying which species.
+# # Which species are at each site?:
+# # Subset detect into individual sites and # of each species per site.
+# # AMPHIT1 entries with accepted species
+# justA1 <- subset(detect, Site == "AMPHIT1" & AccpSpp != "x")
+# # AMPHIT1 entries organized by species (same order as 'spp_here' list)
+# A1 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {A1[i] <- sum(justA1$AccpSpp == spp_here[i]) 
+#       print(A1[i]) #add 'spp_here' column in future --cbind
+# }
+# # AMPHIT2 entries with accepted species
+# justA2 <- subset(detect, Site == "AMPHIT2" & AccpSpp != "x")
+# # AMPHIT2 entries organized by species (same order as 'spp_here' list)
+# A2 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {A2[i] <- sum(justA2$AccpSpp == spp_here[i]) 
+#     print(A2[i])
+# }
+# # CENTER1 entries with accepted species
+# justC1 <- subset(detect, Site == "CENTER1" & AccpSpp != "x")
+# # CENTER1 entries organized by species (same order as 'spp_here' list)
+# C1 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {C1[i] <- sum(justC1$AccpSpp == spp_here[i]) 
+#     print(C1[i])
+# }
+# # CENTER2 entries with accepted species
+# justC2 <- subset(detect, Site == "CENTER2" & AccpSpp != "x")
+# # CENTER2 entries organized by species (same order as 'spp_here' list)
+# C2 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {C2[i] <- sum(justC2$AccpSpp == spp_here[i]) 
+#     print(C2[i])
+# }
+# # EASTLA1 entries with accepted species
+# justE1 <- subset(detect, Site == "EASTLA1" & AccpSpp != "x")
+# # EASTLA1 entries organized by species (same order as 'spp_here' list)
+# E1 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {E1[i] <- sum(justE1$AccpSpp == spp_here[i]) 
+#     print(E1[i])
+# }
+# # EASTLA2 entries with accepted species
+# justE2 <- subset(detect, Site == "EASTLA2" & AccpSpp != "x")
+# # EASTLA2 entries organized by species (same order as 'spp_here' list)
+# E2 <- numeric(length = length(spp_here))
+# for (i in 2:14)
+#   {E2[i] <- sum(justE2$AccpSpp == spp_here[i]) 
+#     print(E2[i])
+# }
+# 
+# ## Bind all of the site diversity results together into 1 object.
+# sitediv1 <- cbind.data.frame(A1, A2, C1, C2, E1, E2)
+# sitediv1
+# sitediv <- as.data.frame(t(sitediv1))
+# sitediv
+
+# # Creating table for stacked plot --------------------------------------------------------
+# # number of species per site
+# # create something like 'detect' for only AccpSpp
 # sprich_site <- detect %>%
 #   select(Site, Date, Time, AccpSpp) %>%
 #   group_by(Site) %>%
-#   summarise(sprich = n_distinct(AccpSpp))
-# # Create plot of species richness.  
-# g <- ggplot(sprich_site)
-# g + geom_col(aes(x=Site, y=sprich))
-#
-## Improve by specifying which species.
-# Which species are at each site?:
-# Subset detect into individual sites and # of each species per site.
-# AMPHIT1 entries with accepted species
-justA1 <- subset(detect, Site == "AMPHIT1" & AccpSpp != "x")
-# AMPHIT1 entries organized by species (same order as 'spp_here' list)
-A1 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {A1[i] <- sum(justA1$AccpSpp == spp_here[i]) 
-      print(A1[i]) #add 'spp_here' column in future --cbind
-}
-# AMPHIT2 entries with accepted species
-justA2 <- subset(detect, Site == "AMPHIT2" & AccpSpp != "x")
-# AMPHIT2 entries organized by species (same order as 'spp_here' list)
-A2 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {A2[i] <- sum(justA2$AccpSpp == spp_here[i]) 
-    print(A2[i])
-}
-# CENTER1 entries with accepted species
-justC1 <- subset(detect, Site == "CENTER1" & AccpSpp != "x")
-# CENTER1 entries organized by species (same order as 'spp_here' list)
-C1 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {C1[i] <- sum(justC1$AccpSpp == spp_here[i]) 
-    print(C1[i])
-}
-# CENTER2 entries with accepted species
-justC2 <- subset(detect, Site == "CENTER2" & AccpSpp != "x")
-# CENTER2 entries organized by species (same order as 'spp_here' list)
-C2 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {C2[i] <- sum(justC2$AccpSpp == spp_here[i]) 
-    print(C2[i])
-}
-# EASTLA1 entries with accepted species
-justE1 <- subset(detect, Site == "EASTLA1" & AccpSpp != "x")
-# EASTLA1 entries organized by species (same order as 'spp_here' list)
-E1 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {E1[i] <- sum(justE1$AccpSpp == spp_here[i]) 
-    print(E1[i])
-}
-# EASTLA2 entries with accepted species
-justE2 <- subset(detect, Site == "EASTLA2" & AccpSpp != "x")
-# EASTLA2 entries organized by species (same order as 'spp_here' list)
-E2 <- numeric(length = length(spp_here))
-for (i in 2:14)
-  {E2[i] <- sum(justE2$AccpSpp == spp_here[i]) 
-    print(E2[i])
-}
-
-## Bind all of the site diversity results together into 1 object.
-sitediv1 <- cbind.data.frame(A1, A2, C1, C2, E1, E2)
-sitediv1
-sitediv <- as.data.frame(t(sitediv1))
-sitediv
-
-# Creating table for stacked plot --------------------------------------------------------
-# number of species per site
-# create something like 'detect' for only AccpSpp
-sprich_site <- detect %>%
-  select(Site, Date, Time, AccpSpp) %>%
-  group_by(Site) %>%
-  summarise(sprich = n_distinct(AccpSpp)) %>%
-  ggplot() +
-  geom_col(aes(x=Site, y=sprich))
+#   summarise(sprich = n_distinct(AccpSpp)) %>%
+#   ggplot() +
+#   geom_col(aes(x=Site, y=sprich))
 
 # ## Make a table thats "Site" "spp_here[2]" "spp_here[3]...spp_here[14] ) <- COME BACK TO FIX THIS
-# divall <- c(A1, A2, C1, C2, E1, E2)
-# diversity <- data.frame(Sites, divall)
+# # divall <- c(A1, A2, C1, C2, E1, E2)
+# # diversity <- data.frame(Sites, divall)
+# # 
+# # g <- ggplot(sprich_site) #diversity plot
+# # g + geom_col(aes(x=Site, y=sprich))
 # 
-# g <- ggplot(sprich_site) #diversity plot
-# g + geom_col(aes(x=Site, y=sprich))
-
-# start stacking plot
-#g + geom_col(aes(x = Site, y = cboundresults of loop, color = spp_here))
-d <- ggplot(sitediv) +
-  #geom_col(aes(x=unique(detect$Site) , y="number_species"))
-geom_bar(aes(x=unique(detect$Site)))
-
-
-d
-
-# trying something else:
-# sum each column
-# sumcalls <- c(23, 431, 35, 88, 70, 56)
-# sumcallsdf <- cbind.data.frame(detect$Site, sumcalls)
-r <- ggplot(sumcalls, aes(x=unique(detect$Site), fill=sitediv)) +
-  #geom_col(aes(x=unique(detect$Site) , y="number_species"))
-  geom_bar(aes(x=unique(detect$Site)))
-r
+# # start stacking plot
+# #g + geom_col(aes(x = Site, y = cboundresults of loop, color = spp_here))
+# d <- ggplot(sitediv) +
+#   #geom_col(aes(x=unique(detect$Site) , y="number_species"))
+# geom_bar(aes(x=unique(detect$Site)))
+# 
+# 
+# d
+# 
+# # trying something else:
+# # sum each column
+# # sumcalls <- c(23, 431, 35, 88, 70, 56)
+# # sumcallsdf <- cbind.data.frame(detect$Site, sumcalls)
+# r <- ggplot(sumcalls, aes(x=unique(detect$Site), fill=sitediv)) +
+#   #geom_col(aes(x=unique(detect$Site) , y="number_species"))
+#   geom_bar(aes(x=unique(detect$Site)))
+# r
 # PLOTS -------------------------------------------------------------------
 
 # HiF and LoF over time, by Site
