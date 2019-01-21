@@ -102,7 +102,7 @@ ggplot(amph) +
 # detect$LoF <- as.numeric(detect$LoF)
 
 freq_group <- detect %>%
-  select(Date, Time, hr, Site, HiF, LoF, SppAccp, Prob) %>%
+  select(Date, Time, hr, Site, HiF, LoF, `Fc mean`, SppAccp, Prob) %>%
   filter(SppAccp != "0" & Prob > 0.98) 
 
 nighttally <- freq_group %>%
@@ -126,6 +126,7 @@ ggplot(nighttally) +
         axis.text.y = element_text(family = "Helvetica", size=12, angle=0),
         strip.text.x = element_text(size = 16))
 
+# by time of night
 by_time <- freq_group %>%
   group_by(hr, Site) %>%
   filter(hr != 10) %>%
@@ -149,15 +150,16 @@ ggplot(by_time) +
                       labels = c('low-frequency', 'high-frequency')) +
   theme(legend.position = c(0.8, 0.8))
 
-# looking at patterns by species (HUGE grain of salt right now bc no manual vetting has occurred yet)
+# patterns by species (HUGE grain of salt right now bc no manual vetting has occurred yet)
 
 unique(freq_group$SppAccp)
 spp <- freq_group %>% group_by(Date, Site, SppAccp) %>%
-  summarise(daytot = n())
+  summarise(daytot = n()) %>%
+  separate(Site, c("Basin", "Fish"), sep=-1, remove=FALSE) %>%
+  mutate(month = as.character(month(Date)))
 
-spp %>% separate(Site, c("Basin", "Fish"), sep=-1, remove=FALSE) %>%
-  mutate(month = as.character(month(Date))) %>%
-  filter(SppAccp == "Eupe") %>%
+spp %>% 
+  filter(`Fc mean` < 30) %>%
   ggplot() +
   geom_bar(stat="identity", position="dodge", alpha = 0.8, aes(x=Date, y=daytot, fill=SppAccp)) +
   theme_minimal() + 
